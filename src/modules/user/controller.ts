@@ -8,7 +8,9 @@ import { StatusCode } from "../../interfaces/enums";
 export default class userController {
   register = async (req: Request, res: Response) => {
     try {
-      const result = await RabbitMQClient.produce(req.body, "register");
+      const response: any = await RabbitMQClient.produce(req.body, "register");
+      const result = JSON.parse(response.content.toString());
+
       res.status(StatusCode.Created).json(result);
     } catch (err) {
       res
@@ -19,7 +21,12 @@ export default class userController {
 
   activate = async (req: Request, res: Response) => {
     try {
-      const result = await RabbitMQClient.produce(req.body, "activateUser");
+      const response: any = await RabbitMQClient.produce(
+        req.body,
+        "activateUser"
+      );
+      const result = JSON.parse(response.content.toString());
+
       res.status(StatusCode.Accepted).json(result);
     } catch (err) {
       res
@@ -30,12 +37,15 @@ export default class userController {
 
   login = async (req: Request, res: Response) => {
     try {
-      const result: any = await RabbitMQClient.produce(req.body, "login");
+      const response: any = await RabbitMQClient.produce(req.body, "login");
+      console.log("login details", req.body);
+
+      const result = JSON.parse(response.content.toString());
 
       if (!result || !result.accessToken || !result.refreshToken) {
         res
           .status(StatusCode.BadRequest)
-          .json({ success: false, message: "Error logging in." });
+          .json({ success: false, message: result.message });
         return;
       }
 
@@ -50,7 +60,7 @@ export default class userController {
     } catch (error) {
       res
         .status(StatusCode.InternalServerError)
-        .json({ success: false, message: "Internal Server Error" });
+        .json({ success: false, message: error });
     }
   };
 
@@ -91,10 +101,12 @@ export default class userController {
         return;
       }
 
-      const authResult: any = await AuthClient.produce(
+      const authResponse: any = await AuthClient.produce(
         { token },
         "isAuthenticated"
       );
+
+      const authResult = JSON.parse(authResponse.content.toString());
 
       if (!authResult || !authResult.userId) {
         res.status(StatusCode.BadRequest).json({
@@ -104,10 +116,12 @@ export default class userController {
         return;
       }
 
-      const userResult: any = await RabbitMQClient.produce(
+      const userResponse: any = await RabbitMQClient.produce(
         { id: authResult.userId },
         "getUser"
       );
+
+      const userResult = JSON.parse(userResponse.content.toString());
 
       res.status(StatusCode.OK).json({ success: true, user: userResult });
     } catch (e: any) {
@@ -120,10 +134,12 @@ export default class userController {
   socialAuth = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, name, avatar } = req.body;
-      const result: any = await RabbitMQClient.produce(
+      const response: any = await RabbitMQClient.produce(
         { name, email, avatar },
         "socialAuth"
       );
+
+      const result = JSON.parse(response.content.toString());
 
       const options = generateTokenOptions();
       res.cookie(
@@ -150,11 +166,11 @@ export default class userController {
     try {
       const { name } = req.body;
       const userId = req.userId;
-      const result: any = await RabbitMQClient.produce(
+      const response: any = await RabbitMQClient.produce(
         { userId, name },
         "updateUserInfo"
       );
-
+      const result = JSON.parse(response.content.toString());
       res.status(StatusCode.Created).json(result);
     } catch (e: any) {
       next(e);
@@ -169,14 +185,91 @@ export default class userController {
     try {
       const { oldPassword, newPassword } = req.body;
       const userId = req.userId;
-      const result: any = await RabbitMQClient.produce(
-        { oldPassword, newPassword, userId },
-        "updatePassword"
-      );
 
-      res.status(StatusCode.Created).json(result);
+      const response: any = await RabbitMQClient.produce(
+        { oldPassword, newPassword, userId },
+        "updateUserPassword"
+      );
+      const result = JSON.parse(response.content.toString());
+      
+      if (!result.success) {
+        res
+          .status(StatusCode.BadRequest)
+          .json({ success: false, message: result.message });
+        return;
+      }
+
+      return res.status(StatusCode.Created).json(result);
     } catch (e: any) {
       next(e);
+    }
+  };
+
+  updateUserAvatar = async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const file = req.file;
+      const id = req.userId;
+      console.log("File:", file);
+      console.log("UserId: ", id);
+
+      const response: any = await RabbitMQClient.produce(
+        {
+          data: file?.buffer,
+          fieldname: file?.fieldname,
+          mimetype: file?.mimetype,
+          id,
+        },
+        "updateUserAvatar"
+      );
+      const result = JSON.parse(response.content.toString());
+      if (result) {
+        res.status(StatusCode.Created).json(result);
+      } else {
+        res.status(StatusCode.BadRequest).json({ message: "Bad Request" });
+      }
+    } catch (e: any) {
+      next(e);
+    }
+  };
+
+  forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const operation = "forgot-password";
+      const response: any = await RabbitMQClient.produce(req.body, operation);
+      const result = JSON.parse(response.content.toString());
+      res.status(StatusCode.Created).json(result);
+    } catch (error) {
+      res
+        .status(StatusCode.BadGateway)
+        .json({ success: false, message: error });
+    }
+  };
+  verifyResetCode = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const operation = "verify-reset-code";
+      const response: any = await RabbitMQClient.produce(req.body, operation);
+      const result = JSON.parse(response.content.toString());
+      res.status(StatusCode.Created).json(result);
+    } catch (error) {
+      res
+        .status(StatusCode.BadGateway)
+        .json({ success: false, message: error });
+    }
+  };
+  resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const operation = "reset-password";
+      const response: any = await RabbitMQClient.produce(req.body, operation);
+      const result = JSON.parse(response.content.toString());
+      res.status(StatusCode.Created).json(result);
+    } catch (error) {
+      res
+        .status(StatusCode.BadGateway)
+        .json({ success: false, message: error });
     }
   };
 }

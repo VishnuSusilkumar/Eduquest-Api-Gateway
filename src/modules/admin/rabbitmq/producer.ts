@@ -13,7 +13,7 @@ export default class Producer {
   async produceMessages(data: any, operation: string) {
     const uuid = randomUUID();
     this.channel.sendToQueue(
-      rabbitmqConfig.rabbitMQ.queues.userQueue,
+      rabbitmqConfig.rabbitMQ.queues.adminQueue,
       Buffer.from(JSON.stringify(data)),
       {
         replyTo: this.replyQueueName,
@@ -24,9 +24,15 @@ export default class Producer {
         },
       }
     );
-    
-    return new Promise((res, reg) => {
+
+    return new Promise((res, rej) => {
       this.eventEmitter.once(uuid, async (data) => {
+        const reply = JSON.parse(data.content.toString());
+        if (reply.error) {
+          rej(new Error("RabbitMQ error"));
+        } else {
+          res(data);
+        }
         res(data);
       });
     });

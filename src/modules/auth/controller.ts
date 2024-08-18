@@ -22,10 +22,11 @@ export const isValidated = AsyncHandler(
     const token = req.cookies?.accessToken;
 
     try {
-      const result: any = await RabbitMQClient.produce(
+      const response: any = await RabbitMQClient.produce(
         { token },
         "isAuthenticated"
       );
+      const result = JSON.parse(response.content.toString());
 
       if (!result || !result.userId) {
         res
@@ -58,7 +59,8 @@ export const refreshToken = async (
   }
 
   try {
-    const result: any = await RabbitMQClient.produce({ token }, "refreshToken");
+    const response: any = await RabbitMQClient.produce({ token }, "refreshToken");
+    const result = JSON.parse(response.content.toString());
 
     if (!result || !result.accessToken || !result.refreshToken) {
       res

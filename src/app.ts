@@ -10,6 +10,8 @@ import logger from "morgan";
 import http from "http";
 import "dotenv/config";
 import { credentials } from "amqplib";
+import instructorRoute from "./modules/instructor/route";
+import adminRoute from "./modules/admin/route";
 
 class App {
   public app: Application;
@@ -39,6 +41,8 @@ class App {
   private routes(): void {
     this.app.use("/api/user", userRoute);
     this.app.use("/api/auth", authRoute);
+    this.app.use("/api/instructor", instructorRoute);
+    this.app.use("/api/admin", adminRoute);
   }
 
   public startServer(port: number): void {

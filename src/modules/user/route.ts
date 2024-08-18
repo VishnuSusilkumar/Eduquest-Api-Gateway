@@ -1,7 +1,10 @@
 import express, { Application } from "express";
 import userController from "./controller";
 import { isValidated } from "../auth/controller";
+import multer from "multer";
 
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 const userRoute: Application = express();
 
 const controller = new userController();
@@ -12,11 +15,21 @@ userRoute.post("/login", controller.login);
 userRoute.get("/me", controller.getUser);
 userRoute.post("/social-auth", controller.socialAuth);
 userRoute.get("/logout", controller.logout);
-userRoute.post("/update-user-info", isValidated, controller.updateUserInfo);
-userRoute.post(
+userRoute.patch("/update-user-info", isValidated, controller.updateUserInfo);
+userRoute.patch(
   "/update-user-password",
   isValidated,
   controller.updateUserPassword
 );
+userRoute.post(
+  "/update-user-avatar",
+  isValidated,
+  upload.single("avatar"),
+  controller.updateUserAvatar
+);
+
+userRoute.post("/forgot-password", controller.forgotPassword);
+userRoute.post("/verify-reset-code", controller.verifyResetCode);
+userRoute.post("/reset-password", controller.resetPassword);
 
 export default userRoute;

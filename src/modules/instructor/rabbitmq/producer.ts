@@ -13,7 +13,7 @@ export default class Producer {
   async produceMessages(data: any, operation: string) {
     const uuid = randomUUID();
     this.channel.sendToQueue(
-      rabbitmqConfig.rabbitMQ.queues.userQueue,
+      rabbitmqConfig.rabbitMQ.queues.instructorQueue,
       Buffer.from(JSON.stringify(data)),
       {
         replyTo: this.replyQueueName,
@@ -24,10 +24,18 @@ export default class Producer {
         },
       }
     );
-    
-    return new Promise((res, reg) => {
-      this.eventEmitter.once(uuid, async (data) => {
-        res(data);
+
+    return new Promise((res, rej) => {
+      this.eventEmitter.once(uuid, async (message) => {
+        try {
+          // Access the content of the message directly
+          const reply = JSON.parse(message.content.toString());
+          console.log("Reply received:", reply);
+          res(reply);
+        } catch (err) {
+          console.error("Error processing message:", err);
+          rej(new Error("Failed to process reply message"));
+        }
       });
     });
   }

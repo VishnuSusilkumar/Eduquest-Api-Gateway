@@ -8,6 +8,7 @@ export default {
       authQueue: "auth_queue",
       instructorQueue: "instructor_queue",
       notificationQueue: "notification_queue",
+      adminQueue: "admin_queue",
     },
   },
 };
