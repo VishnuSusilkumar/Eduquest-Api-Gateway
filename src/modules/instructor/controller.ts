@@ -27,18 +27,6 @@ export default class instructorController {
         data,
         operation
       );
-      console.log("Response Recieved");
-      
-      // const user = {
-      //   avatar: response.avatar,
-      //   name: response.name,
-      //   email: response.email,
-      //   isVerified: response.isVerified,
-      //   role: "instructor",
-      // };
-      // console.log(user);
-
-      // res.status(StatusCode.Created).json(user);
 
       const userRoleData = {
         userId: req.userId,
@@ -50,6 +38,9 @@ export default class instructorController {
         userRoleData,
         operation2
       );
+      const result2 = JSON.parse(roleUpdateResponse.content.toString());
+
+      console.log("Role change", result2);
 
       if (roleUpdateResponse) {
         res.status(StatusCode.Created).json({

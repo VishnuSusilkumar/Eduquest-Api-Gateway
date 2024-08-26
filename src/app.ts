@@ -12,6 +12,8 @@ import "dotenv/config";
 import { credentials } from "amqplib";
 import instructorRoute from "./modules/instructor/route";
 import adminRoute from "./modules/admin/route";
+import courseRoute from "./modules/course/route";
+import orderRoute from "./modules/order/route";
 
 class App {
   public app: Application;
@@ -43,6 +45,8 @@ class App {
     this.app.use("/api/auth", authRoute);
     this.app.use("/api/instructor", instructorRoute);
     this.app.use("/api/admin", adminRoute);
+    this.app.use("/api/courses", courseRoute)
+    this.app.use("/api/order", orderRoute)
   }
 
   public startServer(port: number): void {

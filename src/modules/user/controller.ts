@@ -11,6 +11,14 @@ export default class userController {
       const response: any = await RabbitMQClient.produce(req.body, "register");
       const result = JSON.parse(response.content.toString());
 
+      console.log(result);
+
+      if (!result.success) {
+        res
+          .status(StatusCode.BadRequest)
+          .json({ success: false, message: result.message });
+        return;
+      }
       res.status(StatusCode.Created).json(result);
     } catch (err) {
       res
@@ -26,8 +34,14 @@ export default class userController {
         "activateUser"
       );
       const result = JSON.parse(response.content.toString());
+      if (!result.success) {
+        res
+          .status(StatusCode.BadRequest)
+          .json({ success: false, message: result.message });
+        return;
+      }
 
-      res.status(StatusCode.Accepted).json(result);
+      return res.status(StatusCode.Accepted).json(result);
     } catch (err) {
       res
         .status(StatusCode.BadRequest)
@@ -191,7 +205,7 @@ export default class userController {
         "updateUserPassword"
       );
       const result = JSON.parse(response.content.toString());
-      
+
       if (!result.success) {
         res
           .status(StatusCode.BadRequest)
@@ -213,8 +227,6 @@ export default class userController {
     try {
       const file = req.file;
       const id = req.userId;
-      console.log("File:", file);
-      console.log("UserId: ", id);
 
       const response: any = await RabbitMQClient.produce(
         {
@@ -226,7 +238,9 @@ export default class userController {
         "updateUserAvatar"
       );
       const result = JSON.parse(response.content.toString());
-      if (result) {
+      console.log(result);
+      
+      if (result.success) {
         res.status(StatusCode.Created).json(result);
       } else {
         res.status(StatusCode.BadRequest).json({ message: "Bad Request" });
@@ -241,6 +255,14 @@ export default class userController {
       const operation = "forgot-password";
       const response: any = await RabbitMQClient.produce(req.body, operation);
       const result = JSON.parse(response.content.toString());
+      console.log(result);
+
+      if (!result.success) {
+        res
+          .status(StatusCode.NotFound)
+          .json({ success: false, message: result.message });
+        return;
+      }
       res.status(StatusCode.Created).json(result);
     } catch (error) {
       res
@@ -253,7 +275,15 @@ export default class userController {
       const operation = "verify-reset-code";
       const response: any = await RabbitMQClient.produce(req.body, operation);
       const result = JSON.parse(response.content.toString());
-      res.status(StatusCode.Created).json(result);
+
+      if (!result.success) {
+        res
+          .status(StatusCode.BadRequest)
+          .json({ success: false, message: result.message });
+        return;
+      }
+
+      return res.status(StatusCode.Created).json(result);
     } catch (error) {
       res
         .status(StatusCode.BadGateway)

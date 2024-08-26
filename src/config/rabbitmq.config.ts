@@ -9,6 +9,8 @@ export default {
       instructorQueue: "instructor_queue",
       notificationQueue: "notification_queue",
       adminQueue: "admin_queue",
+      courseQueue: "course_queue",
+      orderQueue: "order_queue",
     },
   },
 };

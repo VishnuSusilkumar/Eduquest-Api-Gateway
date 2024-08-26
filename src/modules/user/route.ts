@@ -14,7 +14,7 @@ userRoute.post("/activate", controller.activate);
 userRoute.post("/login", controller.login);
 userRoute.get("/me", controller.getUser);
 userRoute.post("/social-auth", controller.socialAuth);
-userRoute.get("/logout", controller.logout);
+userRoute.post("/logout", controller.logout);
 userRoute.patch("/update-user-info", isValidated, controller.updateUserInfo);
 userRoute.patch(
   "/update-user-password",
