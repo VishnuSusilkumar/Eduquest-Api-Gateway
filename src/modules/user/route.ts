@@ -12,9 +12,9 @@ const controller = new userController();
 userRoute.post("/register", controller.register);
 userRoute.post("/activate", controller.activate);
 userRoute.post("/login", controller.login);
-userRoute.get("/me", controller.getUser);
+userRoute.get("/me",isValidated, controller.getUser);
 userRoute.post("/social-auth", controller.socialAuth);
-userRoute.post("/logout", controller.logout);
+userRoute.post("/logout",isValidated, controller.logout);
 userRoute.patch("/update-user-info", isValidated, controller.updateUserInfo);
 userRoute.patch(
   "/update-user-password",

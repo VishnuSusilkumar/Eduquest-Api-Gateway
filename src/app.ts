@@ -10,6 +10,7 @@ import logger from "morgan";
 import http from "http";
 import "dotenv/config";
 import { credentials } from "amqplib";
+import { initSocketServer } from "./utils/socket";
 import instructorRoute from "./modules/instructor/route";
 import adminRoute from "./modules/admin/route";
 import courseRoute from "./modules/course/route";
@@ -22,6 +23,7 @@ class App {
   constructor() {
     this.app = express();
     this.server = http.createServer(this.app);
+    initSocketServer(this.server);
     this.applyMiddleware();
     this.routes();
   }
@@ -45,8 +47,8 @@ class App {
     this.app.use("/api/auth", authRoute);
     this.app.use("/api/instructor", instructorRoute);
     this.app.use("/api/admin", adminRoute);
-    this.app.use("/api/courses", courseRoute)
-    this.app.use("/api/order", orderRoute)
+    this.app.use("/api/courses", courseRoute);
+    this.app.use("/api/order", orderRoute);
   }
 
   public startServer(port: number): void {

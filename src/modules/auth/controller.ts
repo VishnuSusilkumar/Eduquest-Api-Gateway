@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import RabbitMQClient from "./rabbitMQ/client";
+import UserRabbitMQClient from "../user/rabbitMQ/client";
 import { CustomRequest } from "../interfaces/IRequest";
 //import AsyncHandler from "express-async-handler";
 import { generateTokenOptions } from "../../utils/generateTokenOptions";
@@ -35,6 +36,33 @@ export const isValidated = AsyncHandler(
         return;
       }
 
+      const operation = "getUser";
+      const id = result.userId;
+      const userResponse: any = await UserRabbitMQClient.produce(
+        { id },
+        operation
+      );
+      const user = JSON.parse(userResponse.content.toString());
+      if (user.isBlocked) {
+        
+        res.cookie("accessToken", "", {
+          maxAge: 1,
+          httpOnly: true,
+          sameSite: "none",
+          secure: true,
+        });
+        res.cookie("refreshToken", "", {
+          maxAge: 1,
+          httpOnly: true,
+          sameSite: "none",
+          secure: true,
+        });
+
+        res
+          .status(StatusCode.Forbidden)
+          .json({ success: false, message: "User is blocked and logged out!" });
+        return;
+      }
       req.userId = result.userId;
       req.role = result.role;
       next();
@@ -59,7 +87,10 @@ export const refreshToken = async (
   }
 
   try {
-    const response: any = await RabbitMQClient.produce({ token }, "refreshToken");
+    const response: any = await RabbitMQClient.produce(
+      { token },
+      "refreshToken"
+    );
     const result = JSON.parse(response.content.toString());
 
     if (!result || !result.accessToken || !result.refreshToken) {

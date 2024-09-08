@@ -4,6 +4,8 @@ import AdminRabbitMQClient from "./rabbitmq/client";
 import "dotenv/config";
 import { StatusCode } from "../../interfaces/enums";
 import { retryAndBreakerOperation } from "../../retry-handler";
+import UserRabbitMQClient from "../user/rabbitMQ/client";
+import InstructorRabbitMQClient from "../instructor/rabbitmq/client";
 
 export interface S3Params {
   Bucket: string;
@@ -29,7 +31,6 @@ export default class AdminController {
     }
   };
 
-
   getAllInstructors = async (
     req: CustomRequest,
     res: Response,
@@ -38,7 +39,10 @@ export default class AdminController {
     try {
       const operation = "get-all-instructors";
       const response: any = await AdminRabbitMQClient.produce(null, operation);
-      res.status(StatusCode.OK).json(JSON.parse(response.content.toString()));
+      const result = JSON.parse(response.content.toString());
+      console.log("Result", result);
+
+      res.status(StatusCode.OK).json(result);
     } catch (e: any) {
       next(e);
     }
@@ -89,6 +93,106 @@ export default class AdminController {
       const operation = "get-categories";
       const response: any = await AdminRabbitMQClient.produce(null, operation);
       res.status(StatusCode.OK).json(JSON.parse(response.content.toString()));
+    } catch (e: any) {
+      next(e);
+    }
+  };
+
+  addFAQ = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    try {
+      const operation = "add-faq";
+      const questions = req.body;
+      const response: any = await AdminRabbitMQClient.produce(
+        questions,
+        operation
+      );
+      res.status(StatusCode.OK).json(JSON.parse(response.content.toString()));
+    } catch (e: any) {
+      next(e);
+    }
+  };
+
+  getFAQ = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    try {
+      const operation = "get-faq";
+      const response: any = await AdminRabbitMQClient.produce(null, operation);
+      res.status(StatusCode.OK).json(JSON.parse(response.content.toString()));
+    } catch (e: any) {
+      next(e);
+    }
+  };
+
+  getInstructorData = async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const operation = "getUser";
+      const { id } = req.params;
+      const response: any = await UserRabbitMQClient.produce(
+        { id: id },
+        operation
+      );
+      const user = JSON.parse(response.content.toString());
+      console.log("userData", user);
+
+      const instructorOperation = "get-instructor";
+
+      const instructorResponse: any = await InstructorRabbitMQClient.produce(
+        { id: id },
+        instructorOperation
+      );
+
+      console.log("instructorData", user.name, instructorResponse);
+      res.json({
+        user,
+        instructorResponse,
+      });
+    } catch (e: any) {
+      next(e);
+    }
+  };
+
+  verifyUser = async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const operation = "verify-user";
+      const { id } = req.params;
+      const response: any = await UserRabbitMQClient.produce({ id }, operation);
+      const result = JSON.parse(response.content.toString());
+      res.status(StatusCode.Created).json(result);
+    } catch (e: any) {
+      next(e);
+    }
+  };
+
+  blockUser = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    try {
+      const operation = "block-user";
+      const id = req.params.id;
+      const response: any = await UserRabbitMQClient.produce({ id }, operation);
+      const result = JSON.parse(response.content.toString());
+      res.status(StatusCode.OK).json(result);
+    } catch (e: any) {
+      next(e);
+    }
+  };
+
+  unBlockUser = async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const operation = "un-block-user";
+      const id = req.params.id;
+      const response: any = await UserRabbitMQClient.produce({ id }, operation);
+      const result = JSON.parse(response.content.toString());
+      res.status(StatusCode.OK).json(result);
     } catch (e: any) {
       next(e);
     }

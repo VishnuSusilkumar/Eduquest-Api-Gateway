@@ -104,22 +104,4 @@ export default class orderController {
       next(e);
     }
   };
-
-  getOrdersAnalytics = async (
-    req: CustomRequest,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const instructorId = req.params.id;
-      const operation = "orders-analytics";
-      const response: any = await orderRabbitMQClient.produce(
-        instructorId,
-        operation
-      );
-      res.status(StatusCode.OK).json(response);
-    } catch (e: any) {
-      next(e);
-    }
-  };
 }

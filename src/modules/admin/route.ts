@@ -10,5 +10,11 @@ adminRoute.get("/get-instructors", isValidated, controller.getAllInstructors);
 adminRoute.delete("/delete-user/:id", isValidated, controller.deleteUser);
 adminRoute.post("/add-categories", isValidated, controller.addCategories);
 adminRoute.get("/get-categories", controller.getCategories);
+adminRoute.post("/add-faq", isValidated, controller.addFAQ);
+adminRoute.get("/get-faq", controller.getFAQ);
+adminRoute.get("/get-instuctor-data/:id", controller.getInstructorData);
+adminRoute.patch("/verify-user/:id", isValidated, controller.verifyUser);
+adminRoute.patch("/block-user/:id", isValidated, controller.blockUser);
+adminRoute.patch("/un-block-user/:id", isValidated, controller.unBlockUser);
 
 export default adminRoute;
