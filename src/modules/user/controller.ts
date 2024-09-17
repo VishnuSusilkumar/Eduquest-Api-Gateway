@@ -4,6 +4,7 @@ import AuthClient from "../auth/rabbitMQ/client";
 import { generateTokenOptions } from "../../utils/generateTokenOptions";
 import { CustomRequest } from "../interfaces/IRequest";
 import { StatusCode } from "../../interfaces/enums";
+import NotificationClient from "../notification/rabbitmq/client";
 
 export default class userController {
   register = async (req: Request, res: Response) => {
@@ -239,7 +240,7 @@ export default class userController {
       );
       const result = JSON.parse(response.content.toString());
       console.log(result);
-      
+
       if (result.success) {
         res.status(StatusCode.Created).json(result);
       } else {
@@ -300,6 +301,79 @@ export default class userController {
       res
         .status(StatusCode.BadGateway)
         .json({ success: false, message: error });
+    }
+  };
+
+  getUsersAnalytics = async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const instructorId = req.params.id;
+      const operation = "getUserAnalytics";
+      const response: any = await RabbitMQClient.produce(
+        instructorId,
+        operation
+      );
+      const result = JSON.parse(response.content.toString());
+      console.log("User analytics result: ", result);
+
+      res.status(StatusCode.OK).json(result);
+    } catch (e: any) {
+      next(e);
+    }
+  };
+
+  reportCourse = async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const getAdminOperation = "get-user-by-role";
+      const data = req.body;
+      const getAdminResponse: any = await RabbitMQClient.produce(
+        { role: "admin" },
+        getAdminOperation
+      );
+      const getAdminResult = JSON.parse(getAdminResponse.content.toString());
+      const adminIds = getAdminResult.data.map((admin: any) => admin._id);
+
+      if (adminIds.length === 0) {
+        return res.status(StatusCode.NotFound).json({
+          success: false,
+          message: "No admins found",
+        });
+      }
+
+      const notificationOperation = "create-notification";
+      const notificationPromises = adminIds.map((adminId: any) => {
+        const notificationData = {
+          title: "Course Reported",
+          status: "unread",
+          message: `The course "${data.courseName}" has been reported for: ${data.reason}`,
+          instructorId: adminId,
+        };
+
+        return NotificationClient.produce(
+          notificationData,
+          notificationOperation
+        );
+      });
+
+      const responses = await Promise.all(notificationPromises);
+      const results = responses.map((response: any) =>
+        JSON.parse(response.content.toString())
+      );
+
+      res.status(StatusCode.OK).json({
+        success: true,
+        message:
+          "The course has been successfully reported. We will review the report and take appropriate action.",
+      });
+    } catch (e: any) {
+      next(e);
     }
   };
 }

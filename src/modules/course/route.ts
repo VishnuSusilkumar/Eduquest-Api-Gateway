@@ -42,5 +42,10 @@ courseRoute.get(
 );
 courseRoute.get("/search-courses", controller.searchCourses);
 courseRoute.get("/get-user-courses", isValidated, controller.getUserCourses);
+courseRoute.get(
+  "/get-course-analytics/:id",
+  isValidated,
+  controller.getCourseAnalytics
+);
 
 export default courseRoute;

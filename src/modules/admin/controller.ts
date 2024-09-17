@@ -6,6 +6,7 @@ import { StatusCode } from "../../interfaces/enums";
 import { retryAndBreakerOperation } from "../../retry-handler";
 import UserRabbitMQClient from "../user/rabbitMQ/client";
 import InstructorRabbitMQClient from "../instructor/rabbitmq/client";
+import CourseRabbitMQClient from "../course/rabbitmq/client";
 
 export interface S3Params {
   Bucket: string;
@@ -191,6 +192,74 @@ export default class AdminController {
       const operation = "un-block-user";
       const id = req.params.id;
       const response: any = await UserRabbitMQClient.produce({ id }, operation);
+      const result = JSON.parse(response.content.toString());
+      res.status(StatusCode.OK).json(result);
+    } catch (e: any) {
+      next(e);
+    }
+  };
+
+  getInstructorCourses = async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const operation = "get-all-courses";
+      const response: any = await CourseRabbitMQClient.produce(null, operation);
+      const courses = JSON.parse(response.content.toString());
+      const coursesWithInstructors = await Promise.all(
+        courses.map(async (course: any) => {
+          const userOperation = "getUser";
+          const userResponse: any = await UserRabbitMQClient.produce(
+            { id: course.instructorId },
+            userOperation
+          );
+          const instructor = JSON.parse(userResponse.content.toString());
+          return {
+            ...course,
+            instructorDetails: instructor,
+          };
+        })
+      );
+      res.status(StatusCode.OK).json(coursesWithInstructors);
+    } catch (e: any) {
+      next(e);
+    }
+  };
+
+  blockCourse = async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      console.log("Block course");
+      const operation = "block-course";
+      const id = req.params.id;
+      const response: any = await CourseRabbitMQClient.produce(
+        { id },
+        operation
+      );
+      const result = JSON.parse(response.content.toString());
+      res.status(StatusCode.OK).json(result);
+    } catch (e: any) {
+      next(e);
+    }
+  };
+
+  unBlockCourse = async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const operation = "un-block-course";
+      const id = req.params.id;
+      const response: any = await CourseRabbitMQClient.produce(
+        { id },
+        operation
+      );
       const result = JSON.parse(response.content.toString());
       res.status(StatusCode.OK).json(result);
     } catch (e: any) {

@@ -272,6 +272,7 @@ export default class CourseController {
       const response: any = await CourseRabbitMQClient.produce(data, operation);
       const resp = response.content.toString();
       const jsonData = JSON.parse(resp);
+      console.log("review", jsonData);
       res.status(StatusCode.OK).json(jsonData);
     } catch (e: any) {
       next(e);
@@ -285,6 +286,8 @@ export default class CourseController {
   ) => {
     try {
       const instructorId = req.params.id;
+      console.log("get notification instructorId", instructorId);
+      
       const operation = "get-all-notifications";
       const response: any = await NotificationClient.produce(
         instructorId,
@@ -364,6 +367,26 @@ export default class CourseController {
       const courseData = JSON.parse(courseResponse.content.toString());
 
       res.status(StatusCode.OK).json(courseData);
+    } catch (e: any) {
+      next(e);
+    }
+  };
+
+  getCourseAnalytics = async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const instructorId = req.params.id;
+      const operation = "course-analytics";
+      const response: any = await CourseRabbitMQClient.produce(
+        instructorId,
+        operation
+      );
+      const resp = response.content.toString();
+      const jsonData = JSON.parse(resp);
+      res.status(StatusCode.OK).json(jsonData);
     } catch (e: any) {
       next(e);
     }

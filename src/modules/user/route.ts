@@ -12,9 +12,9 @@ const controller = new userController();
 userRoute.post("/register", controller.register);
 userRoute.post("/activate", controller.activate);
 userRoute.post("/login", controller.login);
-userRoute.get("/me",isValidated, controller.getUser);
+userRoute.get("/me", isValidated, controller.getUser);
 userRoute.post("/social-auth", controller.socialAuth);
-userRoute.post("/logout",isValidated, controller.logout);
+userRoute.post("/logout", isValidated, controller.logout);
 userRoute.patch("/update-user-info", isValidated, controller.updateUserInfo);
 userRoute.patch(
   "/update-user-password",
@@ -31,5 +31,10 @@ userRoute.post(
 userRoute.post("/forgot-password", controller.forgotPassword);
 userRoute.post("/verify-reset-code", controller.verifyResetCode);
 userRoute.post("/reset-password", controller.resetPassword);
-
+userRoute.get(
+  "/get-users-analytics/:id",
+  isValidated,
+  controller.getUsersAnalytics
+);
+userRoute.post("/report-course", controller.reportCourse);
 export default userRoute;

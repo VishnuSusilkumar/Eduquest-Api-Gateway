@@ -16,5 +16,9 @@ adminRoute.get("/get-instuctor-data/:id", controller.getInstructorData);
 adminRoute.patch("/verify-user/:id", isValidated, controller.verifyUser);
 adminRoute.patch("/block-user/:id", isValidated, controller.blockUser);
 adminRoute.patch("/un-block-user/:id", isValidated, controller.unBlockUser);
+adminRoute.get("/get-instructor-courses", isValidated, controller.getInstructorCourses);
+adminRoute.patch("/block-course/:id", isValidated, controller.blockCourse);
+adminRoute.patch("/un-block-course/:id", isValidated, controller.unBlockCourse);
+
 
 export default adminRoute;
