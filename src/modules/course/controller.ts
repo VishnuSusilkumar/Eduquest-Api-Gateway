@@ -267,12 +267,35 @@ export default class CourseController {
     try {
       let data = req.body;
       data.userId = req.userId;
-      console.log(data);
       const operation = "add-review";
       const response: any = await CourseRabbitMQClient.produce(data, operation);
       const resp = response.content.toString();
       const jsonData = JSON.parse(resp);
-      console.log("review", jsonData);
+      res.status(StatusCode.OK).json(jsonData);
+    } catch (e: any) {
+      next(e);
+    }
+  };
+
+  editReview = async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { reviewId } = req.params;
+      const { updatedReview, courseId } = req.body;
+      const userId = req.userId;
+      const data = {
+        reviewId,
+        updatedReview,
+        courseId,
+        userId,
+      };
+      const operation = "edit-review";
+      const response: any = await CourseRabbitMQClient.produce(data, operation);
+      const resp = response.content.toString();
+      const jsonData = JSON.parse(resp);
       res.status(StatusCode.OK).json(jsonData);
     } catch (e: any) {
       next(e);
@@ -287,7 +310,7 @@ export default class CourseController {
     try {
       const instructorId = req.params.id;
       console.log("get notification instructorId", instructorId);
-      
+
       const operation = "get-all-notifications";
       const response: any = await NotificationClient.produce(
         instructorId,
