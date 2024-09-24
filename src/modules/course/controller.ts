@@ -309,8 +309,6 @@ export default class CourseController {
   ) => {
     try {
       const instructorId = req.params.id;
-      console.log("get notification instructorId", instructorId);
-
       const operation = "get-all-notifications";
       const response: any = await NotificationClient.produce(
         instructorId,

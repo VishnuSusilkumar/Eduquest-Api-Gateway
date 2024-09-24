@@ -54,8 +54,10 @@ export const initSocketServer = (server: http.Server) => {
       delete usersInStream[data.callid];
     });
 
-    socket.on("sendMessage", (datas) => {
-      io.emit("recieveMessage", datas);
+    socket.on("sendMessage", (data) => {
+      console.log("DATA", data);
+      
+      io.emit("recieveMessage", data);
     });
 
     socket.on("disconnect", () => {

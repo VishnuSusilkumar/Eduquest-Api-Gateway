@@ -317,8 +317,6 @@ export default class userController {
         operation
       );
       const result = JSON.parse(response.content.toString());
-      console.log("User analytics result: ", result);
-
       res.status(StatusCode.OK).json(result);
     } catch (e: any) {
       next(e);

@@ -14,5 +14,15 @@ orderRoute.get(
   isValidated,
   controller.getOrdersAnalytics
 );
+orderRoute.get(
+  "/revenue-analytics/:id",
+  isValidated,
+  controller.getRevenueAnalytics
+);
+orderRoute.get(
+  "/instructor-revenue-analytics/:id",
+  isValidated,
+  controller.getInstructorRevenueAnalytics
+);
 
 export default orderRoute;
