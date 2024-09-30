@@ -2,26 +2,13 @@ import { NextFunction, Request, Response } from "express";
 import RabbitMQClient from "./rabbitMQ/client";
 import UserRabbitMQClient from "../user/rabbitMQ/client";
 import { CustomRequest } from "../interfaces/IRequest";
-//import AsyncHandler from "express-async-handler";
+import AsyncHandler from "express-async-handler";
 import { generateTokenOptions } from "../../utils/generateTokenOptions";
 import { StatusCode } from "../../interfaces/enums";
 
-type AsyncRequestHandler = (
-  req: CustomRequest,
-  res: Response,
-  next: NextFunction
-) => Promise<void>;
-
-const AsyncHandler =
-  (fn: AsyncRequestHandler) =>
-  (req: CustomRequest, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-
 export const isValidated = AsyncHandler(
   async (req: CustomRequest, res: Response, next: NextFunction) => {
-    const token = req.cookies?.accessToken;
-
+    const token = req.cookies.accessToken; 
     try {
       const response: any = await RabbitMQClient.produce(
         { token },
@@ -79,7 +66,7 @@ export const refreshToken = async (
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.cookies?.refreshToken;
+  const token = req.cookies.refreshToken;
 
   if (!token) {
     res.status(StatusCode.Unauthorized).json({ message: "Token is missing" });

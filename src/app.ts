@@ -3,9 +3,7 @@ import cors from "cors";
 import userRoute from "./modules/user/route";
 import authRoute from "./modules/auth/router";
 import cookieParser from "cookie-parser";
-import { limiter } from "./utils/rateLimitter";
 import compression from "compression";
-import helmet from "helmet";
 import logger from "morgan";
 import http from "http";
 import "dotenv/config";
@@ -29,7 +27,9 @@ class App {
   }
 
   private applyMiddleware(): void {
-    this.app.use(express.json({ limit: "50mb" }));
+    this.app.use(express.json());
+    console.log("Orgin", process.env.CORS_ORIGIN);
+    
     this.app.use(
       cors({
         origin: process.env.CORS_ORIGIN,
@@ -39,7 +39,6 @@ class App {
     this.app.use(compression());
     this.app.use(logger("dev"));
     this.app.use(cookieParser());
-    this.app.use(limiter);
   }
 
   private routes(): void {
